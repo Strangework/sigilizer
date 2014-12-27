@@ -1,3 +1,5 @@
 *.svg
 *.pyc
-*.py~
+*~
+*.swp
+*.swo
