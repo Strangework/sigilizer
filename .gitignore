@@ -1,4 +1,5 @@
 *.svg
+__pycache__/
 *.pyc
 *~
 *.swp
