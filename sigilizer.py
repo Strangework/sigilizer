@@ -1,19 +1,21 @@
 import sys
 import svgwrite
 
-A = [(0,0), (1, 3), (2,0)]
-B = [(0,3), (1, 0), (2,3)]
+A = [(0,0), (1,3), (2,0)]
+B = [(0,3), (1,0), (2,3)]
+C = [(-1,-1), (-1,1), (1,1), (1,-1)]
+
 
 if (len(sys.argv) > 1):
   DEBUG = bool(int(sys.argv[1]))
 else:
   DEBUG = True
 SVG_PATH = "test.svg"
-SVG_WIDTH = 400
-SVG_HEIGHT = 400
+SVG_WIDTH = 200
+SVG_HEIGHT = 200
 SVG_RATIO = 0.8
 TRUE_NORM = True
-LINE_THICKNESS = 15
+LINE_THICKNESS = 10
 
 def center_shape(point_list, width, height):
   '''
@@ -154,6 +156,7 @@ def graham_scan(orig_point_list):
   bottom_half.append(point_list[0])
 
   print("Bottom half:")
+  print(point_list)
   for n in range(1, len(point_list)):
     #(x2-x1)(y3-y1)-(y2-y1)(x3-x1)
     if (n < len(point_list)-1):
@@ -185,6 +188,7 @@ def graham_scan(orig_point_list):
   top_half = []
   top_half.append(bottom_half[-1])
   print("Top half:")
+  print(point_list)
   for n in reversed(range(0, len(point_list))):
     #(x2-x1)(y3-y1)-(y2-y1)(x3-x1)
     if (n > 0):
@@ -201,10 +205,12 @@ def graham_scan(orig_point_list):
         print("")
     else:
       if (len(top_half) > 1):
-        dir = (top_half[-1][0]-top_half[-2][0])*(bottom_half[0][1]-top_half[-2][1]) - (top_half[-1][1]-top_half[-2][1])*(bottom_half[0][0]-top_half[-2][0])
+        dir = (point_list[0][0]-top_half[-1][0])*(bottom_half[0][1]-top_half[-1][1]) - (point_list[0][1]-top_half[-1][1])*(bottom_half[0][0]-top_half[-1][0])
+        print("p1: " +str(top_half[-1])+ " p2: " +str(point_list[0])+ " p3: " +str(bottom_half[0]))
         print("BREH: " +str(dir))
-        if (dir == 0):
+        if (dir == 0 and point_list[0] != bottom_half[0]): #oh boy
           top_half.pop()
+        top_half.append(point_list[0])
       print("x: " +str(top_half[-1][0])+ " y: " +str(top_half[-1][-1])+ " [APPENDED]")
   top_half.pop(0)
 
@@ -220,15 +226,24 @@ def main():
   svg = svgwrite.Drawing(filename = SVG_PATH, size = (SVG_WIDTH, SVG_HEIGHT))
   a_norm = normalize_shape(A, SVG_WIDTH, SVG_HEIGHT, SVG_RATIO, TRUE_NORM)
   b_norm = normalize_shape(B, SVG_WIDTH, SVG_HEIGHT, SVG_RATIO, TRUE_NORM)
-  c_norm = normalize_shape(graham_scan(mink_sum(a_norm, b_norm)), SVG_WIDTH, SVG_HEIGHT, SVG_RATIO, TRUE_NORM)
-  d_norm = normalize_shape(graham_scan(mink_sum(c_norm, a_norm)), SVG_WIDTH, SVG_HEIGHT, SVG_RATIO, TRUE_NORM)
-  e_norm = normalize_shape(graham_scan(mink_sum(c_norm, b_norm)), SVG_WIDTH, SVG_HEIGHT, SVG_RATIO, TRUE_NORM)
+  c_norm = normalize_shape(C, SVG_WIDTH, SVG_HEIGHT, SVG_RATIO, TRUE_NORM)
 
-  draw_shape(svg, LINE_THICKNESS, "#FFA500", d_norm)
-  draw_shape(svg, LINE_THICKNESS, "#FFA500", e_norm)
-  draw_shape(svg, LINE_THICKNESS, "#708090", c_norm)
+  ab_norm = normalize_shape(graham_scan(mink_sum(a_norm, b_norm)), SVG_WIDTH, SVG_HEIGHT, SVG_RATIO, TRUE_NORM)
+  ab_a_norm = normalize_shape(graham_scan(mink_sum(ab_norm, a_norm)), SVG_WIDTH, SVG_HEIGHT, SVG_RATIO, TRUE_NORM)
+  ab_b_norm = normalize_shape(graham_scan(mink_sum(ab_norm, b_norm)), SVG_WIDTH, SVG_HEIGHT, SVG_RATIO, TRUE_NORM)
+  
+  ca_norm = normalize_shape(graham_scan(mink_sum(c_norm, a_norm)), SVG_WIDTH, SVG_HEIGHT, SVG_RATIO, TRUE_NORM)
+  cb_norm = normalize_shape(graham_scan(mink_sum(c_norm, b_norm)), SVG_WIDTH, SVG_HEIGHT, SVG_RATIO, TRUE_NORM)
+
+
+  draw_shape(svg, LINE_THICKNESS, "#FFA500", ca_norm)
+  draw_shape(svg, LINE_THICKNESS, "#FFA500", cb_norm)
+  draw_shape(svg, LINE_THICKNESS, "#708090", ab_norm)
+
   draw_shape(svg, LINE_THICKNESS, "#3CB371", a_norm)
   draw_shape(svg, LINE_THICKNESS, "#3CB371", b_norm)
+  #draw_shape(svg, LINE_THICKNESS, "#3CB371", c_norm)
+
 
   svg.save()
 
